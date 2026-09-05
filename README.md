@@ -100,6 +100,30 @@ intentscope app.apk --md report.md --json out.json
 
 See [`examples/ci/workflow.yml`](examples/ci/workflow.yml).
 
+
+## Deep analysis (bytecode)
+
+For a full `.apk`, `--deep` adds bytecode analysis on top of the manifest scan.
+It correlates the app's **exported** components with dataflow-style call
+patterns to surface the highest-value leads:
+
+- **IS101 — intent redirection:** an exported component that reads an incoming
+  Intent (`getParcelableExtra`/`getData`/…) *and* calls a launch sink
+  (`startActivity`/`startService`/`sendBroadcast`). The classic
+  attacker-controlled-Intent-forwarding bug.
+- **IS102 — untrusted data into WebView:** an exported component that reads
+  Intent data and calls `WebView.loadUrl`/`postUrl` — deep-link token/origin
+  leak surface.
+
+```bash
+pip install "intentscope[apk]"
+intentscope app.apk --deep --md report.md
+```
+
+Framework/library packages are excluded and hits are scoped to exported
+components, so the output is a short, reviewable lead list rather than noise.
+Each hit is a **candidate to verify**, not a confirmed exploit.
+
 ## Free vs Pro
 
 `intentscope` is **free and open source** — the full scanner, all rules, SARIF/HTML/JSON, and the GitHub Action.

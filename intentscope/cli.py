@@ -25,6 +25,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--md", metavar="FILE", help="write Markdown report to FILE")
     parser.add_argument("--sarif", metavar="FILE", help="write SARIF 2.1.0 report to FILE (for GitHub code scanning)")
     parser.add_argument("--html", metavar="FILE", help="write an HTML report to FILE")
+    parser.add_argument("--deep", action="store_true",
+                        help="also run bytecode analysis for intent-redirection and WebView sinks (requires an .apk and androguard; slower)")
     parser.add_argument("--format", choices=("text", "json", "md"), default="text",
                         help="stdout format (default: text)")
     parser.add_argument("--fail-on", choices=("HIGH", "MEDIUM", "LOW", "INFO", "never"),
@@ -40,6 +42,19 @@ def main(argv: list[str] | None = None) -> int:
         return _EXIT_ERROR
 
     findings = scan(application, components)
+    if args.deep:
+        if not args.target.lower().endswith('.apk'):
+            print('intentscope: --deep requires an .apk', file=sys.stderr)
+            return _EXIT_ERROR
+        try:
+            from .bytecode import analyze_apk
+            exported = {c.name for c in components if c.is_effectively_exported}
+            deep = analyze_apk(args.target, exported_classes=exported)
+        except RuntimeError as exc:
+            print(f'intentscope: {exc}', file=sys.stderr)
+            return _EXIT_ERROR
+        from .models import SEVERITY_ORDER
+        findings = sorted(findings + deep, key=lambda f: (SEVERITY_ORDER.get(f.severity, 9), f.rule_id, f.component))
 
     if args.json:
         with open(args.json, "w", encoding="utf-8") as fh:
