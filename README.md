@@ -10,6 +10,23 @@ components — and reports each with a severity, the exact component, and a fix.
 It runs on a full `.apk` (via [androguard](https://github.com/androguard/androguard))
 **or** a decoded `AndroidManifest.xml` with **zero dependencies** for the XML path.
 
+## Demo
+
+```console
+$ intentscope examples/AndroidManifest.xml
+[HIGH]   IS001 .OpenUrlActivity: Unverified web deep link (hijackable App Link)
+[MEDIUM] IS002 .AuthCallbackActivity: Custom-scheme deep link (unverifiable, hijackable)
+[MEDIUM] IS007 <application>: Application data is backup-enabled
+[LOW]    IS003 .ExportedSyncService: Exported component with no permission
+[INFO]   IS004 .OpenUrlActivity: Deep-linked activity uses singleTask/singleInstance
+
+8 finding(s) across 5 components.
+
+$ intentscope app.apk --deep          # + bytecode analysis, scoped to exported components
+[HIGH]   IS101 com.example.OpenTokenFilterActivity: Possible intent redirection
+[HIGH]   IS102 com.example.WebDialogActivity: Untrusted Intent data into WebView
+```
+
 ## Why
 
 Most mobile scanners are broad. `intentscope` is focused on the deep-link /
