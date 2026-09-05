@@ -76,3 +76,36 @@ $ intentscope examples/AndroidManifest.xml
 ## License
 
 MIT
+
+## Reports & CI
+
+```bash
+intentscope app.apk --sarif intentscope.sarif   # GitHub code-scanning (Security tab)
+intentscope app.apk --html report.html          # shareable HTML
+intentscope app.apk --md report.md --json out.json
+```
+
+### GitHub Action
+
+```yaml
+- uses: matthew6s/intentscope@main
+  with:
+    target: app/src/main/AndroidManifest.xml
+    fail-on: HIGH
+- if: always()
+  uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: ${{ steps.intentscope.outputs.sarif-file }}
+```
+
+See [`examples/ci/workflow.yml`](examples/ci/workflow.yml).
+
+## Free vs Pro
+
+`intentscope` is **free and open source** — the full scanner, all rules, SARIF/HTML/JSON, and the GitHub Action.
+
+A hosted **Pro** tier (planned) adds the always-on layer teams need:
+continuous re-scanning of every app release, diffs and alerts when a new build
+introduces a hijackable deep link, historical tracking, org dashboards, and
+scheduled scanning of app portfolios (built for security teams and bug-bounty
+hunters). Interested? Open an issue or watch the repo.

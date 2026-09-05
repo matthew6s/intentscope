@@ -39,6 +39,7 @@ class Component:
     permission: Optional[str]
     intent_filters: list[IntentFilter] = field(default_factory=list)
     launch_mode: Optional[str] = None
+    grant_uri_permissions: Optional[bool] = None
 
     @property
     def has_intent_filter(self) -> bool:
@@ -54,6 +55,14 @@ class Component:
         if self.exported is False:
             return False
         return self.has_intent_filter
+
+
+@dataclass
+class Application:
+    debuggable: Optional[bool] = None
+    allow_backup: Optional[bool] = None  # defaults to true on Android if unset
+    uses_cleartext_traffic: Optional[bool] = None
+    network_security_config: Optional[str] = None
 
 
 SEVERITY_ORDER = {"HIGH": 0, "MEDIUM": 1, "LOW": 2, "INFO": 3}

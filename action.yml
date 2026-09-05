@@ -1,0 +1,35 @@
+name: "intentscope"
+description: "Scan an Android app for hijackable deep links and risky exported components."
+author: "Matthew Searce"
+branding:
+  icon: "shield"
+  color: "red"
+inputs:
+  target:
+    description: "Path to an .apk or a decoded AndroidManifest.xml"
+    required: true
+  fail-on:
+    description: "Fail the job if a finding at or above this severity is present (HIGH|MEDIUM|LOW|INFO|never)"
+    required: false
+    default: "HIGH"
+  sarif-file:
+    description: "Path to write the SARIF report"
+    required: false
+    default: "intentscope.sarif"
+outputs:
+  sarif-file:
+    description: "Path to the generated SARIF report"
+    value: ${{ steps.scan.outputs.sarif-file }}
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
+    - shell: bash
+      run: pip install "intentscope[apk] @ git+https://github.com/matthew6s/intentscope@main"
+    - id: scan
+      shell: bash
+      run: |
+        intentscope "${{ inputs.target }}" --sarif "${{ inputs.sarif-file }}" --fail-on "${{ inputs.fail-on }}"
+        echo "sarif-file=${{ inputs.sarif-file }}" >> "$GITHUB_OUTPUT"

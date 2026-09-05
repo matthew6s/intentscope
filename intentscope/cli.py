@@ -5,8 +5,9 @@ import argparse
 import sys
 
 from .manifest import load_components
-from .report import to_json, to_markdown
-from .rules import scan_components
+import os
+from .report import to_json, to_markdown, to_sarif, to_html
+from .rules import scan
 
 _EXIT_FINDINGS = 1
 _EXIT_CLEAN = 0
@@ -22,6 +23,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("target", help="path to an .apk or a decoded AndroidManifest.xml")
     parser.add_argument("--json", metavar="FILE", help="write JSON report to FILE")
     parser.add_argument("--md", metavar="FILE", help="write Markdown report to FILE")
+    parser.add_argument("--sarif", metavar="FILE", help="write SARIF 2.1.0 report to FILE (for GitHub code scanning)")
+    parser.add_argument("--html", metavar="FILE", help="write an HTML report to FILE")
     parser.add_argument("--format", choices=("text", "json", "md"), default="text",
                         help="stdout format (default: text)")
     parser.add_argument("--fail-on", choices=("HIGH", "MEDIUM", "LOW", "INFO", "never"),
@@ -31,12 +34,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        components = load_components(args.target)
+        application, components = load_components(args.target)
     except (FileNotFoundError, RuntimeError) as exc:
         print(f"intentscope: {exc}", file=sys.stderr)
         return _EXIT_ERROR
 
-    findings = scan_components(components)
+    findings = scan(application, components)
 
     if args.json:
         with open(args.json, "w", encoding="utf-8") as fh:
@@ -44,6 +47,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.md:
         with open(args.md, "w", encoding="utf-8") as fh:
             fh.write(to_markdown(findings, args.target))
+    if args.sarif:
+        with open(args.sarif, "w", encoding="utf-8") as fh:
+            fh.write(to_sarif(findings, args.target))
+    if args.html:
+        with open(args.html, "w", encoding="utf-8") as fh:
+            fh.write(to_html(findings, args.target))
 
     if args.format == "json":
         print(to_json(findings, args.target))

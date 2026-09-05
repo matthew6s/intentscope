@@ -6,7 +6,7 @@ EXAMPLE = os.path.join(os.path.dirname(__file__), "..", "examples", "AndroidMani
 
 
 def test_example_manifest_parses_and_flags_expected():
-    comps = load_from_xml(EXAMPLE)
+    _app, comps = load_from_xml(EXAMPLE)
     names = {c.name for c in comps}
     assert ".OpenUrlActivity" in names and ".ExportedSyncService" in names
     findings = scan_components(comps)

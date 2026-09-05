@@ -9,7 +9,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from typing import Optional
 
-from .models import Component, IntentFilter
+from .models import Application, Component, IntentFilter
 
 _ANDROID_NS = "http://schemas.android.com/apk/res/android"
 _COMPONENT_TAGS = ("activity", "activity-alias", "service", "receiver", "provider")
@@ -46,10 +46,16 @@ def _parse_intent_filter(el: ET.Element) -> IntentFilter:
     return f
 
 
-def parse_manifest_xml(root: ET.Element) -> list[Component]:
+def parse_manifest_xml(root: ET.Element) -> tuple[Application, list[Component]]:
     app = root.find("application")
     if app is None:
-        return []
+        return Application(), []
+    application = Application(
+        debuggable=_bool_attr(app, "debuggable"),
+        allow_backup=_bool_attr(app, "allowBackup"),
+        uses_cleartext_traffic=_bool_attr(app, "usesCleartextTraffic"),
+        network_security_config=_attr(app, "networkSecurityConfig"),
+    )
     components: list[Component] = []
     for tag in _COMPONENT_TAGS:
         for el in app.findall(tag):
@@ -60,19 +66,20 @@ def parse_manifest_xml(root: ET.Element) -> list[Component]:
                 exported=_bool_attr(el, "exported"),
                 permission=_attr(el, "permission"),
                 launch_mode=_attr(el, "launchMode"),
+                grant_uri_permissions=_bool_attr(el, "grantUriPermissions"),
             )
             for if_el in el.findall("intent-filter"):
                 comp.intent_filters.append(_parse_intent_filter(if_el))
             components.append(comp)
-    return components
+    return application, components
 
 
-def load_from_xml(path: str) -> list[Component]:
+def load_from_xml(path: str) -> tuple[Application, list[Component]]:
     tree = ET.parse(path)
     return parse_manifest_xml(tree.getroot())
 
 
-def load_from_apk(path: str) -> list[Component]:
+def load_from_apk(path: str) -> tuple[Application, list[Component]]:
     try:
         from androguard.core.apk import APK  # type: ignore
     except Exception:  # pragma: no cover - exercised only with androguard absent
@@ -88,7 +95,7 @@ def load_from_apk(path: str) -> list[Component]:
     return parse_manifest_xml(xml_obj)
 
 
-def load_components(path: str) -> list[Component]:
+def load_components(path: str) -> tuple[Application, list[Component]]:
     if path.lower().endswith(".apk"):
         return load_from_apk(path)
     return load_from_xml(path)

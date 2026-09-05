@@ -1,6 +1,7 @@
 """intentscope — Android deep-link & intent-redirection vulnerability scanner."""
-from .models import Component, IntentFilter, Finding
-from .rules import scan_components, ALL_RULES
+from .models import Application, Component, IntentFilter, Finding
+from .rules import scan, scan_components, scan_application, ALL_RULES
 
-__version__ = "0.1.0"
-__all__ = ["Component", "IntentFilter", "Finding", "scan_components", "ALL_RULES"]
+__version__ = "0.2.0"
+__all__ = ["Application", "Component", "IntentFilter", "Finding",
+           "scan", "scan_components", "scan_application", "ALL_RULES"]
