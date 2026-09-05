@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.shopdemo">
+  <application android:label="ShopDemo">
+
+    <!-- VULN: web deep link, exported, no autoVerify -> hijackable App Link (IS001 HIGH) -->
+    <activity android:name=".OpenUrlActivity" android:exported="true"
+        android:launchMode="singleTask">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="https" android:host="shop.example.com"/>
+      </intent-filter>
+    </activity>
+
+    <!-- SAFE: same, but autoVerify set -> should NOT flag IS001 -->
+    <activity android:name=".VerifiedLinkActivity" android:exported="true">
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="https" android:host="verified.example.com"/>
+      </intent-filter>
+    </activity>
+
+    <!-- VULN: custom scheme deep link, exported -> unverifiable (IS002 MEDIUM) -->
+    <activity android:name=".AuthCallbackActivity" android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="shopdemo" android:host="oauth"/>
+      </intent-filter>
+    </activity>
+
+    <!-- VULN: exported service, no permission (IS003 LOW) -->
+    <service android:name=".ExportedSyncService" android:exported="true"/>
+
+    <!-- SAFE: not exported -> should NOT flag -->
+    <activity android:name=".InternalActivity" android:exported="false"/>
+
+  </application>
+</manifest>

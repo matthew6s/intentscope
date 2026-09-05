@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "intentscope"
+version = "0.1.0"
+description = "Android deep-link & intent-redirection vulnerability scanner"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Matthew Searce" }]
+keywords = ["android", "security", "deeplink", "intent-redirection", "appsec", "apk"]
+classifiers = [
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Security",
+]
+dependencies = []
+
+[project.optional-dependencies]
+apk = ["androguard>=3.4"]
+dev = ["pytest"]
+
+[project.urls]
+Homepage = "https://github.com/matthew6s/intentscope"
+Issues = "https://github.com/matthew6s/intentscope/issues"
+
+[project.scripts]
+intentscope = "intentscope.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["intentscope*"]
